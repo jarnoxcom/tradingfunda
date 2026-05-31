@@ -2,164 +2,187 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="description" content="Trading Funda is a static market dashboard with live indices, Indian stock quotes, finance news, and YouTube live streams.">
-	<title>Trading Funda</title>
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="styles.css">
-	<script defer src="script.js"></script>
-</head>
-<body>
-	<div class="page-shell">
-		<header class="topbar">
-			<a class="brand" href="#top">
-				<span class="brand-mark">TF</span>
-				<span>
-					<strong>Trading Funda</strong>
-					<small>Cloudflare Pages market dashboard</small>
-				</span>
-			</a>
-			<nav class="nav-links" aria-label="Primary">
-				<a href="#indices">Indices</a>
-				<a href="#stocks">Stocks</a>
-				<a href="#news">News</a>
-				<a href="#live">Live streams</a>
-			</nav>
-		</header>
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="Trading Funda is a static market dashboard with live indices, Indian stock quotes, finance news, and YouTube live streams.">
+		<title>Trading Funda</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="styles.css">
+		<script defer src="script.js"></script>
+	</head>
+	<body>
+		<div class="page-shell">
+			<header class="topbar">
+				<a class="brand" href="#top">
+					<span class="brand-mark">TF</span>
+					<span>
+						<strong>Trading Funda</strong>
+						<small>A JarNox Product</small>
+					</span>
+				</a>
+				<nav class="nav-links" aria-label="Primary">
+					<a href="#indices">Indices</a>
+					<a href="#stocks">Stocks</a>
+					<a href="#news">News</a>
+					<a href="#live">Live streams</a>
+				</nav>
+			</header>
 
-		<main id="top">
-			<section class="hero panel">
-				<div class="hero-copy">
-					<p class="eyebrow">Live market intelligence</p>
-					<h1>Track global indices, Indian stocks, market news, and live YouTube streams in one static site.</h1>
-					<p class="hero-text">
-						Built for Cloudflare Static Pages, this dashboard refreshes live quotes, shows a finance news feed, and gives you quick access to market channels.
-					</p>
-					<div class="hero-actions">
-						<a class="button button-primary" href="#stocks">Open stock watchlist</a>
-						<a class="button button-secondary" href="#live">View live streams</a>
+			<main id="top">
+				<section class="hero panel">
+					<div class="hero-copy">
+						<p class="eyebrow">Live market intelligence</p>
+						<h1>Track global indices, Indian stocks, market news, and live YouTube streams in one static site.</h1>
+						<p class="hero-text">
+							Built for Cloudflare Static Pages, this dashboard combines live widgets, a finance news feed, and quick access to market channels.
+						</p>
+						<div class="hero-actions">
+							<a class="button button-primary" href="#stocks">Open stock watchlist</a>
+							<a class="button button-secondary" href="#live">View live streams</a>
+						</div>
 					</div>
-				</div>
-				<aside class="hero-card">
-					<div class="hero-card-header">
-						<span class="pulse"></span>
-						<span>Live refresh</span>
-					</div>
-					<div class="hero-stat-grid">
+					<aside class="hero-card">
+						<div class="hero-heatmap-block">
+							<div class="hero-card-header">
+								<span class="pulse"></span>
+								<span>Market heatmap</span>
+							</div>
+							<div id="hero-heatmap" class="heatmap-slot" aria-label="Market heatmap"></div>
+						</div>
+						<div class="hero-card-header">
+							<span class="pulse"></span>
+							<span>Live refresh</span>
+						</div>
+						<div class="hero-stat-grid">
+							<div>
+								<strong id="refresh-state">Loading</strong>
+								<span>data source status</span>
+							</div>
+							<div>
+								<strong>60s</strong>
+								<span>quote refresh cycle</span>
+							</div>
+							<div>
+								<strong>TV</strong>
+								<span>market news feed</span>
+							</div>
+							<div>
+								<strong>YT</strong>
+								<span>live channel embeds</span>
+							</div>
+						</div>
+					</aside>
+				</section>
+
+				<section class="strip panel">
+					<div class="section-heading">
 						<div>
-							<strong id="refresh-state">Loading</strong>
-							<span>data source status</span>
+							<p class="eyebrow">Market pulse</p>
+							<h2>Live quote strip</h2>
 						</div>
+						<p class="section-note">Global indices and Indian market trackers, updated from live market widgets.</p>
+					</div>
+					<div id="quote-strip" class="quote-strip" aria-live="polite"></div>
+				</section>
+
+				<section id="indices" class="panel">
+					<div class="section-heading">
 						<div>
-							<strong>60s</strong>
-							<span>quote refresh cycle</span>
+							<p class="eyebrow">Global view</p>
+							<h2>Market indices</h2>
 						</div>
+						<p class="section-note">A clean snapshot of the major benchmarks that move the broader market.</p>
+					</div>
+					<div id="index-grid" class="card-grid four-up" aria-live="polite"></div>
+				</section>
+
+				<section id="widgets" class="panel split-panel">
+					<div class="section-heading">
 						<div>
-							<strong>TV</strong>
-							<span>market news feed</span>
+							<p class="eyebrow">Latest widgets</p>
+							<h2>Global indices and crypto boards</h2>
 						</div>
+						<p class="section-note">TradingView widgets for broader markets, stocks, and crypto in one static dashboard.</p>
+					</div>
+					<div id="widget-board" class="widget-board" aria-live="polite"></div>
+				</section>
+
+				<section id="stocks" class="panel">
+					<div class="section-heading">
 						<div>
-							<strong>YT</strong>
-							<span>live channel embeds</span>
+							<p class="eyebrow">India watchlist</p>
+							<h2>Indian stock market list</h2>
 						</div>
+						<p class="section-note">High-liquidity names you can scan quickly before the opening bell or during market hours.</p>
 					</div>
-				</aside>
-			</section>
+					<div id="stock-grid" class="card-grid five-up" aria-live="polite"></div>
+				</section>
 
-			<section class="strip panel">
-				<div class="section-heading">
-					<div>
-						<p class="eyebrow">Market pulse</p>
-						<h2>Live quote strip</h2>
-					</div>
-					<p class="section-note">Global indices and Indian market trackers, updated from live market data.</p>
-				</div>
-				<div id="quote-strip" class="quote-strip" aria-live="polite"></div>
-			</section>
-
-			<section id="indices" class="panel">
-				<div class="section-heading">
-					<div>
-						<p class="eyebrow">Global view</p>
-						<h2>Market indices</h2>
-					</div>
-					<p class="section-note">A clean snapshot of the major benchmarks that move the broader market.</p>
-				</div>
-				<div id="index-grid" class="card-grid four-up" aria-live="polite"></div>
-			</section>
-
-			<section id="stocks" class="panel">
-				<div class="section-heading">
-					<div>
-						<p class="eyebrow">India watchlist</p>
-						<h2>Indian stock market list</h2>
-					</div>
-					<p class="section-note">High-liquidity names you can scan quickly before the opening bell or during market hours.</p>
-				</div>
-				<div id="stock-grid" class="card-grid five-up" aria-live="polite"></div>
-			</section>
-
-			<section id="news" class="panel split-panel">
-				<div class="section-heading">
-					<div>
-						<p class="eyebrow">News feed</p>
-						<h2>Finance headlines</h2>
-					</div>
-					  <p class="section-note">A live TradingView market feed tuned for Indian and global market headlines.</p>
-				</div>
-				<div id="news-feed" class="news-feed" aria-live="polite"></div>
-			</section>
-
-			<section id="live" class="panel">
-				<div class="section-heading">
-					<div>
-						<p class="eyebrow">YouTube live</p>
-						<h2>Channel live stream view</h2>
-					</div>
-					<p class="section-note">Embedded streams from finance channels. If a channel is offline, YouTube shows the most recent available live content.</p>
-				</div>
-				<div class="video-grid">
-					<article class="video-card">
-						<iframe
-							src="https://www.youtube-nocookie.com/embed/live_stream?channel=UCI_mwTKUhicNzFrhm33MzBQ"
-							title="ET NOW live stream"
-							loading="lazy"
-							allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-							allowfullscreen></iframe>
-						<div class="video-meta">
-							<strong>ET NOW</strong>
-							<a href="https://www.youtube.com/@ETNOW" target="_blank" rel="noreferrer noopener">Open channel</a>
+				<section id="news" class="panel split-panel">
+					<div class="section-heading">
+						<div>
+							<p class="eyebrow">News feed</p>
+							<h2>Multiple market feeds</h2>
 						</div>
-					</article>
-					<article class="video-card">
-						<iframe
-							src="https://www.youtube-nocookie.com/embed/live_stream?channel=UCIALMKvObZNtJ6AmdCLP7Lg"
-							title="Bloomberg Television live stream"
-							loading="lazy"
-							allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-							allowfullscreen></iframe>
-						<div class="video-meta">
-							<strong>Bloomberg Television</strong>
-							<a href="https://www.youtube.com/@BloombergTelevision" target="_blank" rel="noreferrer noopener">Open channel</a>
+						<p class="section-note">Switch between India, global, and crypto market feeds without leaving the page.</p>
+					</div>
+					<div id="news-tabs" class="tab-switcher" role="tablist" aria-label="Market news feeds"></div>
+					<div id="news-feed" class="news-feed" aria-live="polite"></div>
+				</section>
+
+				<section id="live" class="panel">
+					<div class="section-heading">
+						<div>
+							<p class="eyebrow">YouTube live</p>
+							<h2>Live stream and camera feed</h2>
 						</div>
-					</article>
-					<article class="video-card">
-						<iframe
-							src="https://www.youtube-nocookie.com/embed/live_stream?channel=UCvJJ_dzjViJCoLf5uKUTQ6w"
-							title="CNBC Television live stream"
-							loading="lazy"
-							allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-							allowfullscreen></iframe>
-						<div class="video-meta">
-							<strong>CNBC Television</strong>
-							<a href="https://www.youtube.com/@CNBCtelevision" target="_blank" rel="noreferrer noopener">Open channel</a>
-						</div>
-					</article>
-				</div>
-			</section>
-		</main>
-	</div>
-</body>
-</html>
+						<p class="section-note">A mix of live news channels and a camera-style live feed so the section always has playable content.</p>
+					</div>
+					<div class="video-grid">
+						<article class="video-card">
+							<iframe
+								src="https://www.youtube-nocookie.com/embed/iipR5yUp36o"
+								title="ABC News Live"
+								loading="lazy"
+								allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+								allowfullscreen></iframe>
+							<div class="video-meta">
+								<strong>ABC News Live</strong>
+								<a href="https://www.youtube.com/@ABCNews" target="_blank" rel="noreferrer noopener">Open channel</a>
+							</div>
+						</article>
+						<article class="video-card">
+							<iframe
+								src="https://www.youtube-nocookie.com/embed/3O5GfErItwA"
+								title="BBC News"
+								loading="lazy"
+								allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+								allowfullscreen></iframe>
+							<div class="video-meta">
+								<strong>BBC News</strong>
+								<a href="https://www.youtube.com/@BBCNews" target="_blank" rel="noreferrer noopener">Open channel</a>
+							</div>
+						</article>
+						<article class="video-card">
+							<iframe
+								src="https://www.youtube-nocookie.com/embed/iipR5yUp36o"
+								title="Live camera style stream"
+								loading="lazy"
+								allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+								allowfullscreen></iframe>
+							<div class="video-meta">
+								<strong>Live camera feed demo</strong>
+								<a href="https://www.youtube.com/watch?v=iipR5yUp36o" target="_blank" rel="noreferrer noopener">Open video</a>
+							</div>
+						</article>
+					</div>
+				</section>
+			</main>
+		</div>
+	</body>
+	</html>

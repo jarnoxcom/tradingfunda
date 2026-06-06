@@ -2,6 +2,7 @@ import Parser from "rss-parser";
 import fetch from "node-fetch";
 import { FeedDefinition } from "../feeds.config";
 import { getMd5Hash } from "./dedup";
+import { markFeedFailure, markFeedSuccess } from "./feed-health";
 
 interface RawArticle {
   id: string;
@@ -51,18 +52,22 @@ function extractImageUrl(item: any): string | undefined {
 
 export async function fetchFeedWithTimeout(
   feedDef: FeedDefinition,
-  timeoutMs: number = 8000
+  timeoutMs: number = 8000,
 ): Promise<RawArticle[]> {
+  
+  let timeoutId: NodeJS.Timeout | undefined;
+
   const fetchPromise = (async () => {
     try {
       // Use node-fetch with browser-like headers to bypass 403 restrictions
       const res = await fetch(feedDef.url, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-          "Accept": "text/xml, application/xml, text/html, */*",
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+          Accept: "text/xml, application/xml, text/html, */*",
           "Accept-Language": "en-US,en;q=0.9",
         },
-        timeout: timeoutMs - 1000 // leave some time for parsing
+        timeout: timeoutMs - 1000, // leave some time for parsing
       });
 
       if (!res.ok) {
@@ -70,7 +75,7 @@ export async function fetchFeedWithTimeout(
       }
 
       const xmlText = await res.text();
-      
+
       // Parse the XML text
       const parsed = await parser.parseString(xmlText);
       const articles: RawArticle[] = [];
@@ -80,9 +85,12 @@ export async function fetchFeedWithTimeout(
         const link = item.link ?? item.guid ?? "";
         if (!link) continue;
 
-        const summary = cleanSummary(item.contentSnippet ?? item.content ?? item.summary ?? "");
-        const pubDateStr = item.pubDate ?? item.isoDate ?? new Date().toISOString();
-        
+        const summary = cleanSummary(
+          item.contentSnippet ?? item.content ?? item.summary ?? "",
+        );
+        const pubDateStr =
+          item.pubDate ?? item.isoDate ?? new Date().toISOString();
+
         let pubDate: string;
         try {
           pubDate = new Date(pubDateStr).toISOString();
@@ -102,16 +110,30 @@ export async function fetchFeedWithTimeout(
         });
       }
 
+      console.log(`[SUCCESS] ${feedDef.source} -> ${articles.length} articles`);
+      clearTimeout(timeoutId);
+      markFeedSuccess(feedDef.source, articles.length);
       return articles;
     } catch (err: any) {
-      console.warn(`Error crawling feed [${feedDef.source}] from ${feedDef.url}:`, err.message);
+      console.warn(
+        `Error crawling feed [${feedDef.source}] from ${feedDef.url}:`,
+        err.message,
+      );
+      console.log(`[FAILED] ${feedDef.source} -> ${err.message}`);
+      clearTimeout(timeoutId);
+      markFeedFailure(feedDef.source, err.message);
       return [];
     }
   })();
 
   const timeoutPromise = new Promise<RawArticle[]>((resolve) => {
-    setTimeout(() => {
-      console.warn(`Timeout exceeded (>${timeoutMs}ms) for feed: ${feedDef.source}`);
+    timeoutId = setTimeout(() => {
+      console.warn(
+        `Timeout exceeded (>${timeoutMs}ms) for feed: ${feedDef.source}`,
+      );
+
+      markFeedFailure(feedDef.source, `Timeout after ${timeoutMs}ms`);
+
       resolve([]);
     }, timeoutMs);
   });

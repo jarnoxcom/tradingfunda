@@ -16,13 +16,19 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 
 // 2. Parse JSON payloads
-app.use(express.json());
+app.use(
+  express.json({
+    limit: "10mb",
+  }),
+);
 
 // 3. API Rate Limiting (100 req/min per IP per spec)
 const limiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 100, // limit each IP to 100 requests per minute
-  message: { error: "Too many requests from this IP. Rate limit is 100 req/min." },
+  message: {
+    error: "Too many requests from this IP. Rate limit is 100 req/min.",
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -53,6 +59,6 @@ app.listen(PORT, () => {
   console.log(`  INDIA MARKET MONITOR BACKEND RELAY SERVER      `);
   console.log(`  Listening on Port: ${PORT}                      `);
   console.log(`==================================================`);
-  
+
   startBackgroundSchedulers();
 });

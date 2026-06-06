@@ -3,7 +3,7 @@ import { FEEDS } from "../feeds.config";
 import { fetchFeedWithTimeout } from "../lib/rss-parser";
 import { cache } from "../lib/cache";
 import { isMarketOpen } from "../lib/market-hours";
-import { isDuplicate } from "../lib/dedup";
+ import { getFeedHealth } from "../lib/feed-health";
 
 export const rssRouter = Router();
 
@@ -36,30 +36,36 @@ export async function crawlAllFeeds(): Promise<Article[]> {
   console.log("RSS Crawler: Beginning crawl of all 13 sources...");
 
   try {
-    const feedPromises = FEEDS.map(feed => fetchFeedWithTimeout(feed));
+    const feedPromises = FEEDS.map((feed) => fetchFeedWithTimeout(feed));
     const results = await Promise.all(feedPromises);
-    
+
     // Flatten articles
     const allArticles = results.flat();
-    
+
     // Filter duplicates using MD5 deduplication
+    const seenLinks = new Set<string>();
     const uniqueArticles: Article[] = [];
+
     for (const art of allArticles) {
-      const isDup = await isDuplicate(art.link);
-      if (!isDup) {
-        uniqueArticles.push(art);
-      }
+      if (seenLinks.has(art.link)) continue;
+
+      seenLinks.add(art.link);
+      uniqueArticles.push(art);
     }
 
     // Sort by publication date descending
-    uniqueArticles.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
+    uniqueArticles.sort(
+      (a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime(),
+    );
 
     // Keep max 500 articles in the server cache to save Redis memory
     const trimmed = uniqueArticles.slice(0, 500);
 
     // Save to Cache
     await cache.set(CACHE_KEY, trimmed, CACHE_TTL_SECONDS);
-    console.log(`RSS Crawler: Successfully crawled and saved ${trimmed.length} unique articles.`);
+    console.log(
+      `RSS Crawler: Successfully crawled and saved ${trimmed.length} unique articles.`,
+    );
 
     isCrawlingActive = false;
     return trimmed;
@@ -77,12 +83,14 @@ export function startRssScheduler() {
 
   const runScheduler = async () => {
     await crawlAllFeeds();
-    
+
     // Schedule next run
     const open = isMarketOpen();
     const intervalMs = open ? 90_000 : 300_000; // 90s during hours, 5m outside
-    console.log(`RSS Scheduler: Next crawl scheduled in ${intervalMs / 1000}s (Market Open: ${open})`);
-    
+    console.log(
+      `RSS Scheduler: Next crawl scheduled in ${intervalMs / 1000}s (Market Open: ${open})`,
+    );
+
     crawlTimeoutId = setTimeout(runScheduler, intervalMs);
   };
 
@@ -94,9 +102,9 @@ export function startRssScheduler() {
 rssRouter.get("/", async (req: Request, res: Response) => {
   try {
     const category = req.query.category as string;
-    
+
     let articles = await cache.get<Article[]>(CACHE_KEY);
-    
+
     // Warm cache if empty
     if (!articles || articles.length === 0) {
       console.log("RSS Cache cold. Crawling feeds on-demand...");
@@ -105,7 +113,9 @@ rssRouter.get("/", async (req: Request, res: Response) => {
 
     // Filter by category if requested
     if (category && category !== "all") {
-      const filtered = articles.filter(art => art.category.toLowerCase() === category.toLowerCase());
+      const filtered = articles.filter(
+        (art) => art.category.toLowerCase() === category.toLowerCase(),
+      );
       res.json(filtered);
       return;
     }
@@ -115,4 +125,8 @@ rssRouter.get("/", async (req: Request, res: Response) => {
     console.error("Error in GET /api/rss:", err);
     res.status(500).json({ error: "Failed to retrieve news feeds" });
   }
+});
+
+rssRouter.get("/health", (req, res) => {
+  res.json(getFeedHealth());
 });

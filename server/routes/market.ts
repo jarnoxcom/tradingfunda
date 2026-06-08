@@ -98,6 +98,15 @@ export async function fetchNseSnapshot(): Promise<MarketSnapshot> {
   try {
     // 1. Fetch Indices in parallel
     const indicesData = await nseFetch("https://www.nseindia.com/api/allIndices");
+
+    const nifty50Data = indicesData.data?.find(
+      (idx: any) => idx.index === "NIFTY 50"
+    );
+
+    const advances = Number(nifty50Data?.advances || 0);
+    const declines = Number(nifty50Data?.declines || 0);
+    const unchanged = Number(nifty50Data?.unchanged || 0);
+
     const indices: IndexData[] = (indicesData.data || []).map((idx: any) => ({
       name: idx.index,
       last: idx.last,
@@ -115,6 +124,8 @@ export async function fetchNseSnapshot(): Promise<MarketSnapshot> {
 
     // 2. Fetch Gainers/Losers
     const moversData = await nseFetch("https://www.nseindia.com/api/live-analysis-variations");
+
+    console.log("MOVERS DATA:", moversData);
     
     // Parse movers safely supporting various NSE API shapes
     const topGainers: Mover[] = (moversData.gainers?.data || []).slice(0, 5).map((m: any) => ({
@@ -134,10 +145,13 @@ export async function fetchNseSnapshot(): Promise<MarketSnapshot> {
     }));
 
     // 3. Fetch Advances / Declines
-    const advancesData = await nseFetch("https://www.nseindia.com/api/equity-stockIndices?index=NIFTY%2050");
-    const advances = advancesData.advances ?? (advancesData.data || []).filter((s: any) => parseFloat(s.pChange) > 0).length;
-    const declines = advancesData.declines ?? (advancesData.data || []).filter((s: any) => parseFloat(s.pChange) < 0).length;
-    const unchanged = advancesData.unchanged ?? (advancesData.data || []).filter((s: any) => parseFloat(s.pChange) === 0).length;
+    // const nifty50Data = (indicesData.data || []).find(
+    //   (idx: any) => idx.index === "NIFTY 50"
+    // );
+
+    // const advances = Number(nifty50Data?.advances || 0);
+    // const declines = Number(nifty50Data?.declines || 0);
+    // const unchanged = Number(nifty50Data?.unchanged || 0);
 
     // 4. Fetch FII / DII net values
     let fiiNet = -620.50;

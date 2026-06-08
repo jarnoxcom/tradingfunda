@@ -60,6 +60,8 @@ export async function nseFetch(url: string): Promise<any> {
     "Cookie": cookie,
   };
 
+  console.log("    Calling NSE:", url);
+
   try {
     const res = await fetch(url, { headers, timeout: 8000 });
     
@@ -80,6 +82,8 @@ export async function nseFetch(url: string): Promise<any> {
     if (!res.ok) {
       throw new Error(`NSE Fetch failed with status ${res.status}`);
     }
+
+    console.log("Calling NSE:", url);
 
     return await res.json();
   } catch (err: any) {
